@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl, type FilterSpecification, type GeoJSONSource, type MapLayerMouseEvent } from 'maplibre-gl'
+import workerSource from 'maplibre-gl/dist/maplibre-gl-worker.mjs?raw'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FeatureCollection } from 'geojson'
 import type { RankedSite, SiteFeature } from '@/lib/sites'
@@ -11,10 +12,12 @@ interface Props {
   onSelect: (id: string) => void
 }
 
-// Vite bundles maplibre-gl, which breaks its default worker path, and the host serves
-// .mjs files with the wrong MIME type. So the worker is copied to public/ as a .js file
-// (from node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs, same version) and loaded from there.
-if (typeof window !== 'undefined') setWorkerUrl(new URL('/maplibre-gl-worker.js', window.location.origin).href)
+// Vite bundles maplibre-gl, which breaks its default worker path, and this host serves
+// the worker file with a non-JavaScript MIME type, which browsers refuse. So the worker
+// source is bundled as text and started from a blob: URL, which has no MIME problem.
+if (typeof window !== 'undefined') {
+  setWorkerUrl(URL.createObjectURL(new Blob([workerSource], { type: 'text/javascript' })))
+}
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
@@ -86,10 +89,17 @@ export default function CampusMap({ features, ranked, selectedId, onSelect }: Pr
         type: 'fill',
         source: 'sites',
         filter: ['==', ['get', 'siteId'], ''],
-        paint: { 'fill-color': '#ef4444', 'fill-opacity': 0.45 },
+        paint: { 'fill-color': '#ff1f1f', 'fill-opacity': 0.6 },
       })
       map.addLayer({
         id: 'sites-selected',
+        type: 'line',
+        source: 'sites',
+        filter: ['==', ['get', 'siteId'], ''],
+        paint: { 'line-color': '#ffffff', 'line-width': 6 },
+      })
+      map.addLayer({
+        id: 'sites-selected-edge',
         type: 'line',
         source: 'sites',
         filter: ['==', ['get', 'siteId'], ''],
@@ -132,6 +142,7 @@ export default function CampusMap({ features, ranked, selectedId, onSelect }: Pr
     const f: FilterSpecification = ['==', ['get', 'siteId'], selectedId ?? '']
     map.setFilter('sites-selected', f)
     map.setFilter('sites-selected-fill', f)
+    map.setFilter('sites-selected-edge', f)
   }, [selectedId, data])
 
   return <div ref={el} className="h-full w-full rounded-lg border border-border" />
