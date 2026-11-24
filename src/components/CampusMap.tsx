@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl, type FilterSpecification, type GeoJSONSource, type MapLayerMouseEvent } from 'maplibre-gl'
-import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FeatureCollection } from 'geojson'
 import type { RankedSite, SiteFeature } from '@/lib/sites'
@@ -12,9 +11,10 @@ interface Props {
   onSelect: (id: string) => void
 }
 
-// Vite moves maplibre-gl into a bundle, which breaks its default worker path.
-// Point it at the real worker file (absolute URL, served as a module worker).
-if (typeof window !== 'undefined') setWorkerUrl(new URL(workerUrl, window.location.href).href)
+// Vite bundles maplibre-gl, which breaks its default worker path, and the host serves
+// .mjs files with the wrong MIME type. So the worker is copied to public/ as a .js file
+// (from node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs, same version) and loaded from there.
+if (typeof window !== 'undefined') setWorkerUrl(new URL('/maplibre-gl-worker.js', window.location.origin).href)
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
