@@ -59,7 +59,15 @@ export default function CampusMap({ features, ranked, selectedId, onSelect }: Pr
             attribution: '© OpenStreetMap contributors',
           },
         },
-        layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+        layers: [
+          {
+            // Standard OSM tiles, inverted and desaturated so they read as a dark basemap.
+            id: 'osm',
+            type: 'raster',
+            source: 'osm',
+            paint: { 'raster-saturation': -0.85, 'raster-brightness-min': 0.88, 'raster-brightness-max': 0.08 },
+          },
+        ],
       },
     })
     mapRef.current = map
@@ -74,36 +82,36 @@ export default function CampusMap({ features, ranked, selectedId, onSelect }: Pr
         type: 'fill',
         source: 'sites',
         paint: {
-          'fill-color': ['interpolate', ['linear'], ['get', 'score'], 0, '#cbd5e1', 40, '#38bdf8', 70, '#0ea5e9', 100, '#0c4a6e'],
-          'fill-opacity': 0.75,
+          'fill-color': ['interpolate', ['linear'], ['get', 'score'], 0, '#24372d', 40, '#2c6e51', 70, '#3eb27f', 100, '#54E6A5'],
+          'fill-opacity': 0.6,
         },
       })
       map.addLayer({
         id: 'sites-line',
         type: 'line',
         source: 'sites',
-        paint: { 'line-color': '#0f172a', 'line-width': 0.6, 'line-opacity': 0.6 },
+        paint: { 'line-color': '#54E6A5', 'line-width': 0.6, 'line-opacity': 0.35 },
       })
       map.addLayer({
         id: 'sites-selected-fill',
         type: 'fill',
         source: 'sites',
         filter: ['==', ['get', 'siteId'], ''],
-        paint: { 'fill-color': '#ff1f1f', 'fill-opacity': 0.6 },
+        paint: { 'fill-color': '#ffffff', 'fill-opacity': 0.22 },
       })
       map.addLayer({
         id: 'sites-selected',
         type: 'line',
         source: 'sites',
         filter: ['==', ['get', 'siteId'], ''],
-        paint: { 'line-color': '#ffffff', 'line-width': 6 },
+        paint: { 'line-color': '#54E6A5', 'line-width': 9, 'line-blur': 6, 'line-opacity': 0.7 },
       })
       map.addLayer({
         id: 'sites-selected-edge',
         type: 'line',
         source: 'sites',
         filter: ['==', ['get', 'siteId'], ''],
-        paint: { 'line-color': '#dc2626', 'line-width': 3 },
+        paint: { 'line-color': '#ffffff', 'line-width': 2 },
       })
       map.on('click', 'sites-fill', (e: MapLayerMouseEvent) => {
         const id = e.features?.[0]?.properties?.siteId
@@ -148,10 +156,10 @@ export default function CampusMap({ features, ranked, selectedId, onSelect }: Pr
   return (
     <div className="relative h-full w-full">
       <div ref={el} className="h-full w-full rounded-lg border border-border" />
-      <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-white/90 px-1.5 py-1 text-[9px] leading-none text-slate-800 shadow">
+      <div className="pointer-events-none absolute bottom-2 left-2 rounded border border-[#343B36] bg-[#191C1A]/90 px-1.5 py-1 text-[9px] leading-none text-[#9AA59E]">
         <div
           className="h-1.5 w-14 rounded-sm"
-          style={{ background: 'linear-gradient(to right, #cbd5e1, #38bdf8, #0ea5e9, #0c4a6e)' }}
+          style={{ background: 'linear-gradient(to right, #24372d, #2c6e51, #3eb27f, #54E6A5)' }}
         />
         <div className="mt-0.5 flex justify-between">
           <span>Low</span>
