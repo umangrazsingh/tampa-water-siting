@@ -59,12 +59,18 @@ export default function ShortlistPanel({ selected }: { selected: RankedSite | nu
   const draft = async (rec: { recordId: string; data: Saved }) => {
     setBusyId(rec.recordId)
     try {
-      const outlook = await getRainOutlook().catch((e: unknown) => {
+      let outlook: Awaited<ReturnType<typeof getRainOutlook>> | null = null
+      let outlookNote: string
+      try {
+        outlook = await getRainOutlook()
+        outlookNote = `Five-day Tampa outlook (OpenWeatherMap): rain is forecast in ${outlook.rainySteps} of ${outlook.totalSteps} three-hour periods.`
+      } catch (e) {
         console.warn('[forecast]', e)
-        toast.warning('Rain forecast unavailable', 'Drafting the proposal without it.')
-        return null
-      })
-      const text = await draftProposal(rec.data, outlook)
+        const why = e instanceof Error ? e.message : 'unknown error'
+        outlookNote = `Five-day Tampa outlook: unavailable (${why}).`
+        toast.warning('Rain forecast unavailable', why)
+      }
+      const text = `${await draftProposal(rec.data, outlook)}\n\n${outlookNote}`
       await putConfirmed(rec.recordId, { proposal: text })
       setOpenId(rec.recordId)
     } catch (e) {
