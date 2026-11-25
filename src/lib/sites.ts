@@ -139,10 +139,17 @@ export async function loadCampusSites(): Promise<{ sites: Site[]; features: Site
   return { sites, features }
 }
 
-function minMax(values: number[]): number[] {
+/**
+ * Percentile of each value among all values: the share of sites it beats.
+ * Scaling by the largest site instead lets a few huge lots flatten everyone else,
+ * so moving a slider barely reorders the list. Percentiles keep every weight meaningful.
+ */
+function percentiles(values: number[]): number[] {
+  if (values.length < 2) return values.map(() => 0.5)
   const lo = Math.min(...values)
   const hi = Math.max(...values)
-  return values.map((v) => (hi === lo ? 0.5 : (v - lo) / (hi - lo)))
+  if (lo === hi) return values.map(() => 0.5)
+  return values.map((v) => values.filter((o) => o < v).length / (values.length - 1))
 }
 
 /** Clamp to 0-1 and renormalize so weights sum to 1 (equal if all zero). */
@@ -157,13 +164,13 @@ export function normalizeWeights(w: Weights): Weights {
   return { water: c.water / total, solar: c.solar / total, shade: c.shade / total }
 }
 
-/** Min-max each metric across all sites, weight it, rank by 0-100 score. */
+/** Percentile each metric across all sites, weight it, rank by 0-100 score. */
 export function rankSites(sites: Site[], weights: Weights): RankedSite[] {
   if (!sites.length) return []
   const w = normalizeWeights(weights)
-  const water = minMax(sites.map((s) => s.waterGalPerYear))
-  const solar = minMax(sites.map((s) => s.solarKwhPerYear))
-  const shade = minMax(sites.map((s) => s.shadeM2))
+  const water = percentiles(sites.map((s) => s.waterGalPerYear))
+  const solar = percentiles(sites.map((s) => s.solarKwhPerYear))
+  const shade = percentiles(sites.map((s) => s.shadeM2))
   return sites
     .map((s, i) => ({
       ...s,
