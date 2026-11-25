@@ -172,7 +172,7 @@ export default function RankerPage() {
               <li key={r.id}>
                 <button
                   onClick={() => setSelectedId(r.id)}
-                  className={`w-full rounded-md px-2 py-1.5 text-left hover:bg-muted ${selectedId === r.id ? 'bg-[#252A27] ring-1 ring-[#54E6A5]/60' : ''}`}
+                  className={`w-full rounded-md px-2 py-1.5 text-left hover:bg-muted ${selectedId === r.id ? 'bg-[#252A27] ring-1 ring-inset ring-[#54E6A5]/60' : ''}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex min-w-0 items-center gap-1.5">
