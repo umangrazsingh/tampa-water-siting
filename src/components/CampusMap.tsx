@@ -148,19 +148,14 @@ export default function CampusMap({ features, ranked, selectedId, onSelect }: Pr
   return (
     <div className="relative h-full w-full">
       <div ref={el} className="h-full w-full rounded-lg border border-border" />
-      <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-white/90 px-3 py-2 text-xs text-slate-800 shadow">
-        <div className="mb-1 font-medium">Score (0-100)</div>
+      <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-white/90 px-1.5 py-1 text-[9px] leading-none text-slate-800 shadow">
         <div
-          className="h-2 w-36 rounded"
+          className="h-1.5 w-14 rounded-sm"
           style={{ background: 'linear-gradient(to right, #cbd5e1, #38bdf8, #0ea5e9, #0c4a6e)' }}
         />
-        <div className="mt-1 flex justify-between">
+        <div className="mt-0.5 flex justify-between">
           <span>Low</span>
           <span>High</span>
-        </div>
-        <div className="mt-1 flex items-center gap-1">
-          <span className="inline-block h-2 w-3 rounded-sm" style={{ background: '#ff1f1f' }} />
-          Selected
         </div>
       </div>
     </div>
