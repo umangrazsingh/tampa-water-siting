@@ -58,13 +58,16 @@ export async function draftProposal(site: SavedSite, outlook: RainOutlook | null
   const concept =
     site.kind === 'building'
       ? 'Concept to evaluate: rooftop solar plus a rainwater cistern fed from the roof'
-      : 'Concept to evaluate: solar parking canopy plus a rainwater cistern fed from the canopy'
+      : 'Concept to evaluate: solar parking canopy for shade'
   const facts = [
     'Location: USF Tampa campus, Tampa, Florida (hot, humid, no snow)',
     concept,
     `Site: ${site.name} (${site.kind === 'building' ? 'building roof' : 'parking lot'}), USF Tampa campus`,
     `Screening score: ${site.score}/100 (relative ranking among campus roofs and lots)`,
-    `Estimated rainwater capture: ${Math.round(site.waterGalPerYear)} gallons/year (assumed ${a.annualRainMm} mm rain, runoff ${site.kind === 'building' ? a.runoffRoof : a.runoffLot})`,
+    // Lots harvest no water (lotRunoffHarvested is 0), so only roofs get a rainwater line.
+    ...(site.kind === 'building'
+      ? [`Estimated rainwater capture: ${Math.round(site.waterGalPerYear)} gallons/year (assumed ${a.annualRainMm} mm rain, runoff ${a.runoffRoof})`]
+      : []),
     `Estimated solar output: ${Math.round(site.solarKwhPerYear)} kWh/year (assumed ${a.solarKwhPerKwYear} kWh per kW, ${site.kind === 'building' ? a.usableRoof : a.usableLot} of area usable)`,
     outlook == null
       ? 'Five-day Tampa forecast: unavailable'

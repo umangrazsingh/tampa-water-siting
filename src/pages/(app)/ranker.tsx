@@ -149,6 +149,7 @@ export default function RankerPage() {
           Areas are measured from USF's public ArcGIS footprints. Everything else is an assumption: {ASSUMPTIONS.annualRainMm} mm
           of rain a year, {ASSUMPTIONS.runoffRoof} roof and {ASSUMPTIONS.runoffLot} lot runoff, {fmt(ASSUMPTIONS.solarKwhPerKwYear)} kWh
           per kW per year, {ASSUMPTIONS.usableRoof * 100}% of a roof and {ASSUMPTIONS.usableLot * 100}% of a lot usable for solar.
+          Lots count no harvestable water, and shade counts parking spaces ({ASSUMPTIONS.m2PerParkingSpace} m² each when a lot lists none).
           Scores are relative rankings, not engineering designs.
         </p>
       </footer>
