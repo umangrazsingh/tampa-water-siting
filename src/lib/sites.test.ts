@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeWeights, rankSites, type Site } from './sites'
+import type { Feature } from 'geojson'
+import { buildSite, normalizeWeights, rankSites, type Site } from './sites'
 
 const site = (id: string, kind: Site['kind'], water: number, solar: number, shade: number): Site => ({
   id,
@@ -77,6 +78,27 @@ describe('rankSites', () => {
     const solarFirst = rankSites(many, { water: 0, solar: 1, shade: 0 }).map((r) => r.id)
     expect(waterFirst.indexOf('W')).toBeLessThan(waterFirst.indexOf('S'))
     expect(solarFirst.indexOf('S')).toBeLessThan(solarFirst.indexOf('W'))
+  })
+
+  it('picks a different top site for water-only vs shade-only weights', () => {
+    // A square on campus, `size` degrees wide (0.001 deg is about 100 m).
+    const square = (size: number, props: Record<string, unknown>): Feature => ({
+      type: 'Feature',
+      properties: props,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[-82.41, 28.06], [-82.41 + size, 28.06], [-82.41 + size, 28.06 + size], [-82.41, 28.06 + size], [-82.41, 28.06]]],
+      },
+    })
+    // The lot is about 4x bigger than the roof. Before the fix it won on water too.
+    const lot = buildSite(square(0.001, { OBJECTID_12: 1, LOT_SPACES: 300 }), 'lot', 0)!.site
+    const roof = buildSite(square(0.0005, { OBJECTID: 2 }), 'building', 1)!.site
+
+    expect(lot.waterGalPerYear).toBe(0) // lot runoff is not harvestable
+    expect(lot.shadeM2).toBe(300 * 30) // listed spaces x 30 m2 per space
+
+    expect(rankSites([lot, roof], { water: 1, solar: 0, shade: 0 })[0].id).toBe(roof.id)
+    expect(rankSites([lot, roof], { water: 0, solar: 0, shade: 1 })[0].id).toBe(lot.id)
   })
 
   it('returns an empty list for no sites', () => {

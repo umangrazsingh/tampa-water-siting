@@ -23,6 +23,8 @@ export const ASSUMPTIONS = {
   annualRainMm: 1200, // Tampa long-run average, roughly 47 in/yr
   runoffRoof: 0.9,
   runoffLot: 0.8,
+  lotRunoffHarvested: 0, // lot runoff carries oil and grit, so none of it counts as harvestable
+  m2PerParkingSpace: 30, // one stall plus its share of the aisle; used when a lot lists no spaces
   solarKwhPerKwYear: 1500, // Florida typical yield
   panelKwPerM2: 0.2,
   usableRoof: 0.3, // setbacks, HVAC, shading
@@ -38,7 +40,7 @@ export interface Site {
   areaM2: number
   waterGalPerYear: number
   solarKwhPerYear: number
-  /** m2 of shaded hot surface a canopy would add; 0 for roofs */
+  /** m2 of parked cars a canopy would shade (spaces x m2PerParkingSpace); 0 for roofs */
   shadeM2: number
   lon: number
   lat: number
@@ -92,7 +94,7 @@ function bboxCenter(geometry: Geometry): [number, number] {
 
 const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '')
 
-function buildSite(f: Feature, kind: SiteKind, i: number): { site: Site; feature: SiteFeature } | null {
+export function buildSite(f: Feature, kind: SiteKind, i: number): { site: Site; feature: SiteFeature } | null {
   if (!f.geometry) return null
   const p = (f.properties ?? {}) as Record<string, unknown>
   const areaM2 = area(f)
@@ -100,7 +102,11 @@ function buildSite(f: Feature, kind: SiteKind, i: number): { site: Site; feature
 
   const a = ASSUMPTIONS
   const rainM = a.annualRainMm / 1000
-  const runoff = kind === 'building' ? a.runoffRoof : a.runoffLot
+  // Water: only clean roof rain counts. Lots shed rain too, but it is not harvestable.
+  const runoff = kind === 'building' ? a.runoffRoof : a.runoffLot * a.lotRunoffHarvested
+  // Shade: how many cars a canopy covers. Use the lot's listed spaces, else estimate from area.
+  const listedSpaces = typeof p.LOT_SPACES === 'number' && p.LOT_SPACES > 0 ? p.LOT_SPACES : 0
+  const spaces = listedSpaces || areaM2 / a.m2PerParkingSpace
   const usable = kind === 'building' ? a.usableRoof : a.usableLot
   const name =
     kind === 'building'
@@ -115,7 +121,7 @@ function buildSite(f: Feature, kind: SiteKind, i: number): { site: Site; feature
     areaM2,
     waterGalPerYear: areaM2 * rainM * runoff * 264.172,
     solarKwhPerYear: areaM2 * usable * a.panelKwPerM2 * a.solarKwhPerKwYear,
-    shadeM2: kind === 'lot' ? areaM2 : 0,
+    shadeM2: kind === 'lot' ? spaces * a.m2PerParkingSpace : 0,
     lon,
     lat,
   }

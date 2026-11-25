@@ -27,9 +27,17 @@ Kruthika and Aryan. This is a new, smaller build for DeepSpace, not a copy of th
    draft a proposal, and email it to themselves.
 
 All numbers are screening estimates, not measurements. Only the areas are measured.
-Water and solar are both driven by area, so they rank sites similarly; what separates
-them is that roofs shed more rain (0.9 vs 0.8) while lots host more solar (60% vs 30% of
-area usable). Shade counts parking lots only.
+The three factors measure different things, so the sliders pick different winners:
+
+- **Water** counts roof rain only (`runoffRoof` 0.9). Lots shed rain too (`runoffLot` 0.8),
+  but it carries oil and grit, so `lotRunoffHarvested` is 0 and lots score no water.
+- **Solar** is usable panel area: 30% of a roof (`usableRoof`) or 60% of a lot as a canopy
+  (`usableLot`), times 0.2 kW/m2 and 1,500 kWh per kW per year.
+- **Shade** is the parked cars a lot canopy would cover: the lot's listed `LOT_SPACES`
+  times `m2PerParkingSpace` (30 m2). Lots with no listed spaces are estimated as area / 30 m2.
+  Roofs score no shade.
+
+Building height is not in USF's data (`BLDGHEIGHT` is empty), so it is not used.
 
 ## DeepSpace pieces used
 
