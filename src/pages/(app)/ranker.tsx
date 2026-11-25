@@ -131,7 +131,7 @@ export default function RankerPage() {
                 {selected.kind === 'building' ? 'Roof' : 'Parking lot'} | score {selected.score}/100 | {fmt(selected.areaM2)} m2
               </p>
               <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-muted-foreground">Rainwater (estimated)</dt><dd className="font-medium">{fmt(selected.waterGalPerYear)} gal/yr</dd></div>
+                <div><dt className="text-muted-foreground">Rainwater (estimated)</dt><dd className="font-medium">{selected.kind === 'building' ? `${fmt(selected.waterGalPerYear)} gal/yr` : 'None counted (lot runoff is not harvestable)'}</dd></div>
                 <div><dt className="text-muted-foreground">Solar (estimated)</dt><dd className="font-medium">{fmt(selected.solarKwhPerYear)} kWh/yr</dd></div>
               </dl>
             </div>
